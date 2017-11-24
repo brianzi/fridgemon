@@ -13,6 +13,8 @@ import errno
 import stat
 import collections
 import datetime
+import json
+import requests
 
 
 class LogWatcher(object):
@@ -90,7 +92,7 @@ class LogWatcher(object):
         ls = os.listdir(self.folder)
         import glob
 
-        ls = glob.glob(self.folder+"/**/*")
+        ls = glob.glob(self.folder + "/**/*")
         if self.extensions:
             return [x for x in ls if os.path.splitext(x)[1][1:]
                     in self.extensions]
@@ -120,7 +122,7 @@ class LogWatcher(object):
                     f.seek(0)
                     exit = True
                 else:
-                    f.seek(fsize+step, 0)
+                    f.seek(fsize + step, 0)
                 data = f.read().strip()
                 if data.count('\n') > window:
                     break
@@ -248,7 +250,7 @@ class LogLineParserBase:
             pp_unit = ""
             pp_name = name
 
-        self._values[self.prefix+name] = (pp_name, pp_unit, value)
+        self._values[self.prefix + name] = (pp_name, pp_unit, value)
 
     def pretty_print_status(self, only_updates=True):
         if only_updates:
@@ -408,6 +410,17 @@ if __name__ == '__main__':
                 for l in lines:
                     p.parse_line(l)
                     p.pretty_print_status()
+
+        # publish the update
+        all_updates = {}
+        for p in parsers:
+            all_updates.update(p.updates)
+
+        r = requests.post(
+            "http://localhost:5000/update",
+            data=json.dumps(all_updates))
+        print(r.status_code)
+        print(r.json())
 
     l = LogWatcher("./Logs/", callback, tail_lines=5)
     l.loop()
