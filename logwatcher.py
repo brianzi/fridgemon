@@ -413,12 +413,12 @@ if __name__ == '__main__':
 
         # publish the update
         all_updates = {}
-        for p in parsers:
+        for n, p in parsers:
             all_updates.update(p.updates)
 
         r = requests.post(
             "http://localhost:5000/update",
-            data=json.dumps(all_updates))
+            data=json.dumps(all_updates, default=str))
         print(r.status_code)
         print(r.json())
 
