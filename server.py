@@ -7,6 +7,8 @@ from gevent.queue import Queue
 
 from flask import Flask, Response, request
 
+import flask
+
 import json
 
 
@@ -43,56 +45,8 @@ datadict = {}
 
 @app.route("/")
 def index():
-    debug_template = """
-     <html>
-       <head>
-       <link rel="stylesheet" href="static/style.css">
-       </head>
-       <body>
-         <h1>Server sent events</h1>
-         <div id="event"></div>
-         <script type="text/javascript">
-         var data = {};
-         var eventOutputContainer = document.getElementById("event");
-         var evtSrc = new EventSource("/subscribe");
-
-         evtSrc.onmessage = function(e) {
-             console.log(e.data);
-             data = JSON.parse(e.data);
-             for (i = 0; i < data.length; i++) {
-                var update = data[i];
-                var field = document.getElementById(update.id);
-                if (field != null) {
-                    console.log(update.id);
-                    field.getElementsByClassName("value")[0].innerHTML = update.value;
-                };
-             };
-
-             //eventOutputContainer.innerHTML = e.data;
-         };
-
-         </script>
-
-         <table>
-         <tr class="value_display id="time">
-             <td><span class="description">Time </span></td>
-             <td><span class="value">-</span></td>
-         </tr>
-         <tr class="value_display id="random number">
-             <td><span class="description">Random number </span></td>
-             <td><span class="value">-</span></td>
-         </tr>
-         <tr class="value_display id="iteration">
-             <td><span class="description">Iteration </span></td>
-             <td><span class="value">-</span></td>
-         </tr>
-         </table>
-
-
-       </body>
-     </html>
-    """
-    return(debug_template)
+    return(flask.render_template("index.html",
+                                 value_ids=datadict))
 
 
 @app.route("/debug")
@@ -120,7 +74,7 @@ def update(*args, **kwargs):
     print(datadict)
 
     def notify():
-        msg = json.dumps(list(datadict.values()))
+        msg = json.dumps(j)
         for sub in subscriptions[:]:
             sub.put(msg)
     gevent.spawn(notify)

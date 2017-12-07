@@ -15,6 +15,7 @@ import collections
 import datetime
 import json
 import requests
+import re
 
 
 class LogWatcher(object):
@@ -201,9 +202,32 @@ class LogWatcher(object):
         self.files_map.clear()
 
 
-class LogLineParserBase:
+class ParsingLogWatcher(LogWatcher):
 
-    def __init__(self, prefix="", fields=None):
+    def __init__(self, folder, parsers, extensions=["log"], tail_lines=0):
+        self.parser_map = {}
+        self.parsers = parsers
+        super().__init__(folder, self.process_new_line, extensions, tail_lines)
+
+    def watch(self, fname):
+        # find the parser responsible for this file
+        accepting_parsers = []
+        for p in self.parsers:
+            if p.accept_file(fname):
+                accepting_parsers.append(p)
+        self.parser_map[fname] = accepting_parsers
+        super().watch(fname)
+
+    def process_new_line(self, filename, line):
+        for parser in self.parser_map[filename]:
+            parser.parse_line(line)
+
+
+class LogLineParserBase:
+    def __init__(self, prefix="", filename_regex=None, fields=None):
+
+        self.filename_regex = re.compile(filename_regex)
+
         self.prefix = prefix
         self.last_values = {}
 
@@ -214,6 +238,12 @@ class LogLineParserBase:
 
         self._values = {}
         self.updates = {}
+
+    def accept_file(self, filename):
+        if self.filename_regex.match(filename):
+            return True
+        else:
+            return False
 
     def parse_line(self, line):
         date, time, *items = [i.strip() for i in line.split(",")]
