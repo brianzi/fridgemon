@@ -30,6 +30,7 @@ while(1):
         })
 
     try:
+        print(request)
         r = requests.post(
             "http://localhost:5000/update",
             data=json.dumps(request, default=str))

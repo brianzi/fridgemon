@@ -1,10 +1,7 @@
 <html>
 <head>
 <link rel="stylesheet" href="static/style.css">
-<link rel="stylesheet" type="text/css" href="static/epoch.css">
-<script src="https://d3js.org/d3.v3.min.js"></script>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
-<script src="static/epoch.min.js"></script>
 </head>
 <body>
 <h1>Server sent events</h1>
@@ -12,18 +9,6 @@
 
 
 $(document).ready(function() {
-
-  var sine_values = []
-
-  var gauge = $("#myplot").epoch({
-    type: 'time.line',
-    axes: ['right', 'bottom', 'left'],
-    range: [-1, 1],
-    historySize: 2000,
-    data: [{label:"Sine", 
-      values: sine_values
-    }]
-  });
 
   var data = {};
   var evtSrc = new EventSource("/subscribe");
@@ -44,10 +29,6 @@ $(document).ready(function() {
             }, true);
         }
       };
-      if (update.id == "sine") {
-        point = {time: update.timestamp, y: update.value}
-        gauge.push([point]);
-      }
     };
   };
 })
@@ -65,7 +46,5 @@ $(document).ready(function() {
     </tr>
   {% endfor %}
 </table>
-  <div id="myplot" class="epoch category10" style="width: 800px; height: 200px">
-  </div>
 </body>
 </html>

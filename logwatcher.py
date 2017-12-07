@@ -446,11 +446,13 @@ if __name__ == '__main__':
         for n, p in parsers:
             all_updates.update(p.updates)
 
+        update_message = [{'id': k, 'value': v} for k, v in all_updates.items()]
+
         r = requests.post(
             "http://localhost:5000/update",
-            data=json.dumps(all_updates, default=str))
+            data=json.dumps(update_message, default=str))
         print(r.status_code)
         print(r.json())
 
-    l = LogWatcher("./Logs/", callback, tail_lines=5)
-    l.loop()
+    lw = LogWatcher("./Logs/", callback, tail_lines=1)
+    lw.loop()
